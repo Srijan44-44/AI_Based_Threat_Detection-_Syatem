@@ -4,6 +4,7 @@ import time
 import pandas as pd
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import LabelEncoder
+import requests
 
 # Define network interface for Windows
 INTERFACE = "Wi-Fi"
@@ -103,8 +104,18 @@ def classify_threats(df):
 
     # Restore original values after AI detection
     df[["Source", "Destination", "Protocol"]] = original_values
+    for _, row in df.iterrows():
+        if row["Threat Classification"] == "Threat":
+            send_to_server(row.to_dict())
 
     return df
 
 # 🔄 Run capture & AI-based threat analysis
 capture_packets()
+def send_to_server(threat_data):
+    url = "http://<your-server-ip>:8000/threat-log"
+    try:
+        response = requests.post(url, json=threat_data)
+        print("Data Sent:", response.status_code)
+    except Exception as e:
+        print("Error Sending Data:", e) 
